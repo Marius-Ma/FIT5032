@@ -5,10 +5,19 @@
     <header class="d-flex justify-content-center py-3">
       <ul class="nav nav-pills">
         <li class="nav-item">
-          <a href="#" class="nav-link active" aria-current="page">Home (Week 4)</a>
+          <router-link to="/" class="nav-link" active-class="active" aria-current="page"
+            >Home (Week 5)</router-link
+          >
         </li>
-        <li class="nav-item"><a href="#" class="nav-link">About</a></li>
-        <li class="nav-item"><a href="#" class="nav-link">Contact us</a></li>
+        <li class="nav-item">
+          <router-link to="/about" class="nav-link" active-class="active">About</router-link>
+        </li>
+        <li class="nav-item" v-if="!isAuthenticated">
+          <router-link to="/login" class="nav-link">Login</router-link>
+        </li>
+        <li class="nav-item" v-if="isAuthenticated">
+          <button @click="logout" class="btn btn-danger">Logout</button>
+        </li>
       </ul>
     </header>
   </div>
@@ -50,3 +59,18 @@
   outline: 0;
 }
 </style>
+<script setup>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
+
+const store = useStore()
+const router = useRouter()
+
+const isAuthenticated = computed(() => store.state.isAuthenticated)
+
+const logout = () => {
+  store.dispatch('logout')
+  router.push('/login')
+}
+</script>

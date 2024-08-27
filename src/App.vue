@@ -5,14 +5,17 @@ import LibraryRegistrationForm from './components/LibraryRegistrationForm.vue'
 </script>
 
 <template>
-  <header>
-    <BHeader />
-  </header>
+  <div class="main-container">
+    <header>
+      <BHeader />
+    </header>
 
-  <main>
-    <LibraryRegistrationForm />
-    <!-- <JSONLab /> -->
-  </main>
+    <main class="main-box">
+      <!-- <LibraryRegistrationForm /> -->
+      <router-view></router-view>
+      <!-- <JSONLab /> -->
+    </main>
+  </div>
 </template>
 
 <style scoped>
@@ -42,4 +45,12 @@ import LibraryRegistrationForm from './components/LibraryRegistrationForm.vue'
     flex-wrap: wrap;
   }
 } */
+.about {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 80vw;
+  margin: 0 auto;
+  padding: 20px;
+  /* background-color: #e0bfbf; */
+  border-radius: 10px;
+}
 </style>

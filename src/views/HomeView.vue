@@ -9,7 +9,8 @@ const formData = ref({
   confirmPassword: '',
   isAustralian: false,
   reason: '',
-  gender: ''
+  gender: '',
+  suburb: 'Clayton'
 })
 
 const submittedCards = ref([])
@@ -189,6 +190,10 @@ const validateReason = (blur) => {
             </div>
             <div v-if="errors.reason && errors.reasonType === 'positive'" class="text-success">
               {{ errors.reason }}
+            </div>
+            <div class="mt-3 mb-3">
+              <label for="suburb" class="form-label">Suburb</label>
+              <input type="text" class="form-control" id="suburb" v-model="formData.suburb" />
             </div>
           </div>
           <div class="text-center">
