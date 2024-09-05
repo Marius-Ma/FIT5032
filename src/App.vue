@@ -45,7 +45,7 @@ import LibraryRegistrationForm from './components/LibraryRegistrationForm.vue'
     flex-wrap: wrap;
   }
 } */
-.about {
+.container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   max-width: 80vw;
   margin: 0 auto;

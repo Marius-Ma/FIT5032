@@ -31,36 +31,24 @@
   </div>
 </template>
 
-<script>
-import { mapActions } from 'vuex'
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 
-export default {
-  data() {
-    return {
-      username: '',
-      password: ''
-    }
-  },
+const username = ref('')
+const password = ref('')
+const store = useStore() // 引入 Vuex store
+const router = useRouter() // 引入 Vue Router
 
-  methods: {
-    ...mapActions(['login']),
-    handleLogin() {
-      const user = { username: this.username, password: this.password }
-      this.login(user)
-      this.$router.push({ name: 'Home' })
-    }
-  }
+const handleLogin = () => {
+  const user = { username: username.value, password: password.value }
+  store.dispatch('login', user) // 使用 Vuex 的 action 处理登录
+  router.push('/')
 }
 </script>
 
 <style scoped>
-.container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 80vw;
-  margin: 0 auto;
-  padding: 20px;
-}
-
 .card {
   border: 1px solid #ccc;
   border-radius: 10px;

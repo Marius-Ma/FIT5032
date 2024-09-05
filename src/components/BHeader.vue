@@ -13,10 +13,20 @@
           <router-link to="/about" class="nav-link" active-class="active">About</router-link>
         </li>
         <li class="nav-item" v-if="!isAuthenticated">
-          <router-link to="/login" class="nav-link">Login</router-link>
+          <router-link to="/login" class="nav-link" active-class="active">Login</router-link>
         </li>
         <li class="nav-item" v-if="isAuthenticated">
           <button @click="logout" class="btn btn-danger">Logout</button>
+        </li>
+        <li class="nav-item">
+          <router-link to="/FireLogin" class="nav-link" active-class="active"
+            >Firebase Login</router-link
+          >
+        </li>
+        <li class="nav-item">
+          <router-link to="/FireRegister" class="nav-link" active-class="active"
+            >Firebase Register</router-link
+          >
         </li>
       </ul>
     </header>
@@ -63,14 +73,23 @@
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
+import { getAuth, signOut } from 'firebase/auth'
 
 const store = useStore()
 const router = useRouter()
+const auth = getAuth()
 
 const isAuthenticated = computed(() => store.state.isAuthenticated)
 
 const logout = () => {
-  store.dispatch('logout')
-  router.push('/login')
+  signOut(auth)
+    .then(() => {
+      // 成功登出后，更新 Vuex 的状态
+      store.dispatch('logout')
+      router.push('/login') // 重定向到登录页面
+    })
+    .catch((error) => {
+      console.log('Error signing out:', error)
+    })
 }
 </script>
