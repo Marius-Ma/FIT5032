@@ -6,6 +6,7 @@ import FirebaseSigninView from '../views/FirebaseSigninView.vue'
 import FirebaseRegisterView from '../views/FirebaseRegisterView.vue'
 import store from '../store/store'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore'
 
 const routes = [
   {
@@ -49,35 +50,79 @@ const router = createRouter({
   routes
 })
 
+let isAuthChecked = false // 用来防止多次调用的标志
+
 router.beforeEach((to, from, next) => {
   const auth = getAuth()
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      store.commit('setAuthentication', true)
-      store.commit('setUser', { email: user.email, role: store.state.user?.role || 'user' })
-      if (to.matched.some((record) => record.meta.requiresAuth)) {
-        if (to.meta.requiresRole && store.state.user?.role !== to.meta.requiresRole) {
-          next({ name: 'AccessDenied' })
-        } else {
-          next() // 有权限，允许访问
+  if (store.state.isAuthenticated) {
+    handleAuthorization(to, next)
+    return
+  }
+
+  // 确保只调用一次
+  if (!isAuthChecked) {
+    isAuthChecked = true // 设置标志，表示已进行检查
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const db = getFirestore()
+          const userDoc = await getDoc(doc(db, 'users', user.uid))
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data()
+            const userRole = userData.role
+
+            store.commit('setAuthentication', true)
+            store.commit('setUser', { email: user.email, role: userRole })
+
+            handleAuthorization(to, next)
+          } else {
+            // 如果没有找到用户角色，自动创建一个默认角色
+            await setDoc(doc(db, 'users', user.uid), {
+              email: user.email,
+              role: 'user' // 默认角色为 user
+            })
+
+            // 重新设置 Vuex 的状态
+            store.commit('setAuthentication', true)
+            store.commit('setUser', { email: user.email, role: 'user' })
+
+            handleAuthorization(to, next)
+          }
+        } catch (error) {
+          console.error('Error getting user data:', error)
+          store.commit('setAuthentication', false)
+          store.commit('setUser', null)
+          next({ name: 'Login' })
         }
       } else {
-        next() // 不需要认证，允许访问
-      }
-    } else {
-      // 用户未登录
-      store.commit('setAuthentication', false)
-      store.commit('setUser', null)
+        store.commit('setAuthentication', false)
+        store.commit('setUser', null)
 
-      // 如果目标路由需要认证，但用户未登录，则跳转到登录页面
-      if (to.matched.some((record) => record.meta.requiresAuth)) {
-        next({ name: 'Login' })
-      } else {
-        next() // 目标路由不需要认证，允许访问
+        if (to.matched.some((record) => record.meta.requiresAuth)) {
+          next({ name: 'Login' })
+        } else {
+          next()
+        }
       }
-    }
-  })
+    })
+  } else {
+    next() // 如果已经检查过，继续导航
+  }
 })
+
+// 授权逻辑封装
+const handleAuthorization = (to, next) => {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    if (to.meta.requiresRole && store.state.user?.role !== to.meta.requiresRole) {
+      next({ name: 'AccessDenied' })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
+}
 
 export default router

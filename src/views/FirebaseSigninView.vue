@@ -8,21 +8,40 @@
 <script setup>
 import { ref } from 'vue'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
+import { getFirestore, doc, getDoc } from 'firebase/firestore'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
+
 const email = ref('')
 const password = ref('')
 const router = useRouter()
 const store = useStore()
 const auth = getAuth()
+const db = getFirestore()
+
 const signin = () => {
-  signInWithEmailAndPassword(getAuth(), email.value, password.value)
-    .then((data) => {
-      console.log('Firebase Sign in Successful!')
-      store.commit('setAuthentication', true)
-      store.commit('setUser', { email: data.user.email })
-      router.push('/')
-      console.log(auth.currentUser) // To check the current user signed in
+  signInWithEmailAndPassword(auth, email.value, password.value)
+    .then(async (data) => {
+      const userDoc = await getDoc(doc(db, 'users', data.user.uid))
+      if (userDoc.exists()) {
+        const userData = userDoc.data()
+        const userRole = userData.role
+
+        // 将用户信息和角色存储到 Vuex
+        store.commit('setAuthentication', true)
+        store.commit('setUser', { email: data.user.email, role: userRole })
+        console.log('Firebase Sign in Successful!')
+        console.log('User Role:', userRole)
+        console.log(auth.currentUser)
+        // 根据角色跳转不同页面
+        if (userRole === 'admin') {
+          router.push('/about') // admin 推送到 About 页面
+        } else {
+          router.push('/')
+        }
+      } else {
+        console.log('User role not found')
+      }
     })
     .catch((error) => {
       console.log(error.code)

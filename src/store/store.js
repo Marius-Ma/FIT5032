@@ -15,6 +15,7 @@ export default createStore({
   },
   actions: {
     login({ commit }, { username }) {
+      console.log('login action triggered', username)
       commit('setAuthentication', true)
       commit('setUser', { username, role: username === 'admin' ? 'admin' : 'user' })
       return true

@@ -43,7 +43,7 @@ const router = useRouter() // 引入 Vue Router
 
 const handleLogin = () => {
   const user = { username: username.value, password: password.value }
-  store.dispatch('login', user) // 使用 Vuex 的 action 处理登录
+  store.dispatch('login', user)
   router.push('/')
 }
 </script>
