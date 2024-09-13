@@ -4,6 +4,10 @@ import AboutView from '../views/AboutView.vue'
 import LoginView from '../views/LoginView.vue'
 import FirebaseSigninView from '../views/FirebaseSigninView.vue'
 import FirebaseRegisterView from '../views/FirebaseRegisterView.vue'
+import AddBookView from '../views/AddBookView.vue'
+import BookListView from '../components/BookListView.vue'
+import UpdateBookView from '../components/UpdateBookView.vue'
+import DeleteBookView from '@/components/DeleteBookView.vue'
 import store from '../store/store'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore'
@@ -36,17 +40,38 @@ const routes = [
   {
     path: '/FireLogin',
     name: 'FireLogin',
-    component: FirebaseSigninView
+    component: FirebaseSigninView,
+    meta: { requiresAuth: false }
   },
   {
     path: '/FireRegister',
     name: 'FireRegister',
-    component: FirebaseRegisterView
-  }
+    component: FirebaseRegisterView,
+    meta: { requiresAuth: false }
+  },
   {
-    path: '/addBook',
+    path: '/add-book',
     name: 'AddBook',
-    component: AddBookView
+    component: AddBookView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/book-list',
+    name: 'BookList',
+    component: BookListView,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/update-book',
+    name: 'UpdateBook',
+    component: UpdateBookView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/delete-book',
+    name: 'DeleteBook',
+    component: DeleteBookView,
+    meta: { requiresAuth: true }
   }
 ]
 
@@ -65,7 +90,6 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  // 确保只调用一次
   if (!isAuthChecked) {
     isAuthChecked = true
     onAuthStateChanged(auth, async (user) => {
@@ -82,6 +106,7 @@ router.beforeEach((to, from, next) => {
             store.commit('setUser', { email: user.email, role: userRole })
 
             handleAuthorization(to, next)
+            return
           } else {
             // 如果没有找到用户角色，自动创建一个默认角色
             await setDoc(doc(db, 'users', user.uid), {
@@ -94,12 +119,14 @@ router.beforeEach((to, from, next) => {
             store.commit('setUser', { email: user.email, role: 'user' })
 
             handleAuthorization(to, next)
+            return
           }
         } catch (error) {
           console.error('Error getting user data:', error)
           store.commit('setAuthentication', false)
           store.commit('setUser', null)
           next({ name: 'Login' })
+          return
         }
       } else {
         store.commit('setAuthentication', false)
