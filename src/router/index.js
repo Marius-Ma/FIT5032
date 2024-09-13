@@ -80,79 +80,80 @@ const router = createRouter({
   routes
 })
 
-let isAuthChecked = false
+function getCurrentUser() {
+  return new Promise((resolve, reject) => {
+    const auth = getAuth()
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        unsubscribe() // 确保回调只执行一次
+        resolve(user) // 当用户状态发生改变时 resolve user
+      },
+      reject
+    )
+  })
+}
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const auth = getAuth()
 
+  // 如果 Vuex 中已经有认证信息，直接处理授权
   if (store.state.isAuthenticated) {
     handleAuthorization(to, next)
-    return
-  }
-
-  if (!isAuthChecked) {
-    isAuthChecked = true
-    onAuthStateChanged(auth, async (user) => {
+  } else {
+    try {
+      const user = await getCurrentUser() // 等待 onAuthStateChanged 确定用户状态
       if (user) {
-        try {
-          const db = getFirestore()
-          const userDoc = await getDoc(doc(db, 'users', user.uid))
+        const db = getFirestore()
+        const userDoc = await getDoc(doc(db, 'users', user.uid))
 
-          if (userDoc.exists()) {
-            const userData = userDoc.data()
-            const userRole = userData.role
+        if (userDoc.exists()) {
+          const userData = userDoc.data()
+          const userRole = userData.role
 
-            store.commit('setAuthentication', true)
-            store.commit('setUser', { email: user.email, role: userRole })
+          // 更新 Vuex 中的用户和认证信息
+          store.commit('setAuthentication', true)
+          store.commit('setUser', { email: user.email, role: userRole })
 
-            handleAuthorization(to, next)
-            return
-          } else {
-            // 如果没有找到用户角色，自动创建一个默认角色
-            await setDoc(doc(db, 'users', user.uid), {
-              email: user.email,
-              role: 'user' // 默认角色为 user
-            })
+          handleAuthorization(to, next) // 处理授权逻辑
+        } else {
+          // 如果用户没有数据，创建默认用户角色
+          await setDoc(doc(db, 'users', user.uid), {
+            email: user.email,
+            role: 'user' // 默认角色
+          })
 
-            // 重新设置 Vuex 的状态
-            store.commit('setAuthentication', true)
-            store.commit('setUser', { email: user.email, role: 'user' })
+          store.commit('setAuthentication', true)
+          store.commit('setUser', { email: user.email, role: 'user' })
 
-            handleAuthorization(to, next)
-            return
-          }
-        } catch (error) {
-          console.error('Error getting user data:', error)
-          store.commit('setAuthentication', false)
-          store.commit('setUser', null)
-          next({ name: 'Login' })
-          return
+          handleAuthorization(to, next) // 处理授权逻辑
         }
       } else {
-        store.commit('setAuthentication', false)
-        store.commit('setUser', null)
-
+        // 如果没有用户且访问需要认证的页面，重定向到登录页面
         if (to.matched.some((record) => record.meta.requiresAuth)) {
           next({ name: 'Login' })
         } else {
-          next()
+          next() // 允许访问无需认证的页面
         }
       }
-    })
-  } else {
-    next()
+    } catch (error) {
+      console.error('Error during auth state check:', error)
+      next({ name: 'Login' }) // 发生错误时重定向到登录
+    }
   }
 })
 
+// 处理授权逻辑
 const handleAuthorization = (to, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
+    // 如果需要特定角色的权限，但当前用户角色不符合，跳转到访问拒绝页面
     if (to.meta.requiresRole && store.state.user?.role !== to.meta.requiresRole) {
       next({ name: 'AccessDenied' })
     } else {
-      next()
+      next() // 用户有权限，正常跳转
     }
   } else {
-    next()
+    next() // 页面不需要认证，直接跳转
   }
 }
 

@@ -27,15 +27,13 @@ const signin = () => {
         const userData = userDoc.data()
         const userRole = userData.role
 
-        // 将用户信息和角色存储到 Vuex
         store.commit('setAuthentication', true)
         store.commit('setUser', { email: data.user.email, role: userRole })
         console.log('Firebase Sign in Successful!')
         console.log('User Role:', userRole)
         console.log(auth.currentUser)
-        // 根据角色跳转不同页面
         if (userRole === 'admin') {
-          router.push('/about') // admin 推送到 About 页面
+          router.push('/about')
         } else {
           router.push('/')
         }

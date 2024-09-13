@@ -7,9 +7,11 @@ export default createStore({
   },
   mutations: {
     setAuthentication(state, status) {
+      console.log('Setting isAuthenticated:', status)
       state.isAuthenticated = status
     },
     setUser(state, user) {
+      console.log('Setting user:', user)
       state.user = user
     }
   },
