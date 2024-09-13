@@ -43,6 +43,11 @@ const routes = [
     name: 'FireRegister',
     component: FirebaseRegisterView
   }
+  {
+    path: '/addBook',
+    name: 'AddBook',
+    component: AddBookView
+  }
 ]
 
 const router = createRouter({
@@ -50,7 +55,7 @@ const router = createRouter({
   routes
 })
 
-let isAuthChecked = false // 用来防止多次调用的标志
+let isAuthChecked = false
 
 router.beforeEach((to, from, next) => {
   const auth = getAuth()
@@ -62,7 +67,7 @@ router.beforeEach((to, from, next) => {
 
   // 确保只调用一次
   if (!isAuthChecked) {
-    isAuthChecked = true // 设置标志，表示已进行检查
+    isAuthChecked = true
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
@@ -108,11 +113,10 @@ router.beforeEach((to, from, next) => {
       }
     })
   } else {
-    next() // 如果已经检查过，继续导航
+    next()
   }
 })
 
-// 授权逻辑封装
 const handleAuthorization = (to, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (to.meta.requiresRole && store.state.user?.role !== to.meta.requiresRole) {

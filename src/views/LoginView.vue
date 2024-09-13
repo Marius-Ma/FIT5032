@@ -38,8 +38,8 @@ import { useStore } from 'vuex'
 
 const username = ref('')
 const password = ref('')
-const store = useStore() // 引入 Vuex store
-const router = useRouter() // 引入 Vue Router
+const store = useStore()
+const router = useRouter()
 
 const handleLogin = () => {
   const user = { username: username.value, password: password.value }
