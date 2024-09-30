@@ -11,6 +11,7 @@ import DeleteBookView from '@/components/DeleteBookView.vue'
 import store from '../store/store'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore'
+import GetBookCountView from '@/views/GetBookCountView.vue'
 
 const routes = [
   {
@@ -72,6 +73,11 @@ const routes = [
     name: 'DeleteBook',
     component: DeleteBookView,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/GetBookCount',
+    name: 'GetBookCount',
+    component: GetBookCountView
   }
 ]
 
@@ -86,7 +92,7 @@ function getCurrentUser() {
     const unsubscribe = onAuthStateChanged(
       auth,
       (user) => {
-        unsubscribe() // 确保回调只执行一次
+        unsubscribe()
         resolve(user) // 当用户状态发生改变时 resolve user
       },
       reject
