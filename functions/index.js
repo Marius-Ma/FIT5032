@@ -28,6 +28,25 @@ exports.countBooks = onRequest((req, res) => {
   })
 })
 
+exports.autoCapitalizeTitle = onRequest((req, res) => {
+  cors(req, res, async () => {
+    try {
+      const { isbn, name } = req.body
+      const uppercaseTitle = name.toUpperCase()
+
+      const writeResult = await admin.firestore().collection('books').add({
+        isbn: isbn,
+        name: uppercaseTitle
+      })
+
+      res.status(200).json({ title: uppercaseTitle, id: writeResult.id })
+    } catch (error) {
+      console.error('Error adding book with capitalization:', error.message)
+      res.status(500).send('Error adding book with capitalization')
+    }
+  })
+})
+
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
