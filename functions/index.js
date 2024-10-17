@@ -28,6 +28,7 @@ exports.countBooks = onRequest((req, res) => {
   })
 })
 
+// Cloud Function to get book counts
 exports.autoCapitalizeTitle = onRequest((req, res) => {
   cors(req, res, async () => {
     try {
@@ -43,6 +44,26 @@ exports.autoCapitalizeTitle = onRequest((req, res) => {
     } catch (error) {
       console.error('Error adding book with capitalization:', error.message)
       res.status(500).send('Error adding book with capitalization')
+    }
+  })
+})
+
+// Cloud Function to get all books
+exports.getAllBooks = onRequest((req, res) => {
+  cors(req, res, async () => {
+    try {
+      const booksCollection = admin.firestore().collection('books')
+      const snapshot = await booksCollection.get()
+
+      let books = []
+      snapshot.forEach((doc) => {
+        books.push({ id: doc.id, ...doc.data() })
+      })
+
+      res.status(200).json(books)
+    } catch (error) {
+      console.error('Error getting all books:', error.message)
+      res.status(500).send('Error getting all books')
     }
   })
 })

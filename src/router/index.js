@@ -12,7 +12,9 @@ import store from '../store/store'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore'
 import GetBookCountView from '@/views/GetBookCountView.vue'
-
+import WeatherView from '@/views/WeatherView.vue'
+import CountBookAPI from '@/views/CountBookAPI.vue'
+import GetAllBookAPI from '@/views/GetAllBookAPI.vue'
 const routes = [
   {
     path: '/',
@@ -78,6 +80,21 @@ const routes = [
     path: '/GetBookCount',
     name: 'GetBookCount',
     component: GetBookCountView
+  },
+  {
+    path: '/WeatherCheck',
+    name: 'WeatherCheck',
+    component: WeatherView
+  },
+  {
+    path: '/CountBookAPI',
+    name: 'CountBookAPI',
+    component: CountBookAPI
+  },
+  {
+    path: '/GetAllBookAPI',
+    name: 'GetAllBookAPI',
+    component: GetAllBookAPI
   }
 ]
 
@@ -93,7 +110,7 @@ function getCurrentUser() {
       auth,
       (user) => {
         unsubscribe()
-        resolve(user) // 当用户状态发生改变时 resolve user
+        resolve(user)
       },
       reject
     )
@@ -103,12 +120,11 @@ function getCurrentUser() {
 router.beforeEach(async (to, from, next) => {
   const auth = getAuth()
 
-  // 如果 Vuex 中已经有认证信息，直接处理授权
   if (store.state.isAuthenticated) {
     handleAuthorization(to, next)
   } else {
     try {
-      const user = await getCurrentUser() // 等待 onAuthStateChanged 确定用户状态
+      const user = await getCurrentUser()
       if (user) {
         const db = getFirestore()
         const userDoc = await getDoc(doc(db, 'users', user.uid))
@@ -117,7 +133,6 @@ router.beforeEach(async (to, from, next) => {
           const userData = userDoc.data()
           const userRole = userData.role
 
-          // 更新 Vuex 中的用户和认证信息
           store.commit('setAuthentication', true)
           store.commit('setUser', { email: user.email, role: userRole })
 
@@ -135,7 +150,6 @@ router.beforeEach(async (to, from, next) => {
           handleAuthorization(to, next) // 处理授权逻辑
         }
       } else {
-        // 如果没有用户且访问需要认证的页面，重定向到登录页面
         if (to.matched.some((record) => record.meta.requiresAuth)) {
           next({ name: 'Login' })
         } else {
@@ -144,7 +158,7 @@ router.beforeEach(async (to, from, next) => {
       }
     } catch (error) {
       console.error('Error during auth state check:', error)
-      next({ name: 'Login' }) // 发生错误时重定向到登录
+      next({ name: 'Login' })
     }
   }
 })
@@ -159,7 +173,7 @@ const handleAuthorization = (to, next) => {
       next() // 用户有权限，正常跳转
     }
   } else {
-    next() // 页面不需要认证，直接跳转
+    next()
   }
 }
 
