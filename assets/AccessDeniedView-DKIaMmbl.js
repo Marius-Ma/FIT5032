@@ -1,0 +1,1 @@
+import{_ as s,o,c,a as e}from"./index-Du0NkhlS.js";const t={},n={class:"container"},_=e("h1",null,"Access Denied",-1),a=e("p",null,"You do not have permission to view this page.",-1),i=[_,a];function r(d,l){return o(),c("div",n,i)}const p=s(t,[["render",r]]);export{p as default};
